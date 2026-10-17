@@ -35,6 +35,7 @@
 #include "common/util.h"
 #include "data/data.h"
 #include "data/poi.h"
+#include "timefilterbar.h"
 #include "map/downloader.h"
 #include "map/demloader.h"
 #include "map/maplist.h"
@@ -86,6 +87,7 @@ GUI::GUI(const QString &lang)
 	createStatusBar();
 	createActions();
 	createMenus();
+	_timeFilterBar = 0;
 #ifndef Q_OS_ANDROID
 	createToolBars();
 #endif // Q_OS_ANDROID
@@ -963,6 +965,13 @@ void GUI::createToolBars()
 	_navigationToolBar->addAction(_prevAction);
 	_navigationToolBar->addAction(_nextAction);
 	_navigationToolBar->addAction(_lastAction);
+
+	_timeFilterBar = new TimeFilterBar(this);
+	_timeFilterBar->setObjectName("TimeFilter");
+	addToolBarBreak();
+	addToolBar(_timeFilterBar);
+	connect(_timeFilterBar, &TimeFilterBar::filterChanged, this,
+	  &GUI::timeFilterChanged);
 }
 #endif // Q_OS_ANDROID
 
@@ -1345,6 +1354,16 @@ void GUI::loadData(const Data &data)
 		}
 	}
 	_trackCount += data.tracks().count();
+
+	const DateTimeRange &tr = data.timeRange();
+	if (tr.first.isValid() && (_fullTimeRange.first.isNull()
+	  || tr.first < _fullTimeRange.first))
+		_fullTimeRange.first = tr.first;
+	if (tr.second.isValid() && (_fullTimeRange.second.isNull()
+	  || tr.second > _fullTimeRange.second))
+		_fullTimeRange.second = tr.second;
+	if (_timeFilterBar)
+		_timeFilterBar->setBounds(_fullTimeRange.first, _fullTimeRange.second);
 
 	for (int i = 0; i < data.routes().count(); i++)
 		_routeDistance += data.routes().at(i).distance();
@@ -1748,6 +1767,7 @@ void GUI::reloadFiles()
 	_time = 0;
 	_movingTime = 0;
 	_dateRange = DateTimeRange(QDateTime(), QDateTime());
+	_fullTimeRange = DateTimeRange(QDateTime(), QDateTime());
 	_pathName = QString();
 
 	for (int i = 0; i < _tabs.count(); i++)
@@ -1762,6 +1782,9 @@ void GUI::reloadFiles()
 		}
 	}
 
+	if (_timeFilterBar)
+		_timeFilterBar->setBounds(_fullTimeRange.first, _fullTimeRange.second);
+
 	updateStatusBarInfo();
 	updateWindowTitle();
 	if (_files.isEmpty())
@@ -1772,6 +1795,16 @@ void GUI::reloadFiles()
 #endif // Q_OS_ANDROID
 	updateDataDEMDownloadAction();
 	_mapView->showExtendedInfo(_files.size() > 1);
+}
+
+void GUI::timeFilterChanged()
+{
+	if (!_timeFilterBar)
+		return;
+
+	Data::setTimeFilter(_timeFilterBar->isActive(), _timeFilterBar->from(),
+	  _timeFilterBar->to());
+	reloadFiles();
 }
 
 void GUI::closeFiles()
@@ -1795,6 +1828,15 @@ void GUI::closeFiles()
 	_mapView->showExtendedInfo(false);
 
 	_files.clear();
+
+	/* The time filter is bound to the loaded data, switch it off so that
+	   newly opened files are not filtered by a stale time range. */
+	_fullTimeRange = DateTimeRange(QDateTime(), QDateTime());
+	Data::setTimeFilter(false, QDateTime(), QDateTime());
+	if (_timeFilterBar) {
+		_timeFilterBar->deactivate();
+		_timeFilterBar->setBounds(QDateTime(), QDateTime());
+	}
 }
 
 void GUI::closeAll()
@@ -1834,6 +1876,8 @@ void GUI::showToolbars(bool show)
 		removeToolBar(_fileToolBar);
 		removeToolBar(_showToolBar);
 		removeToolBar(_navigationToolBar);
+		if (_timeFilterBar)
+			removeToolBar(_timeFilterBar);
 	}
 }
 
@@ -3350,6 +3394,8 @@ void GUI::loadOptions()
 	_mapView->setMapConfig(CRS::projection(_options.inputProjection),
 	  CRS::projection(4326, _options.outputProjection), _options.hidpiMap);
 	_mapView->setTimeZone(_options.timeZone.zone());
+	if (_timeFilterBar)
+		_timeFilterBar->setTimeZone(_options.timeZone.zone());
 	_mapView->setPositionSource(_positionSource);
 
 	for (int i = 0; i < _tabs.count(); i++) {
@@ -3488,6 +3534,8 @@ void GUI::updateOptions(const Options &options)
 
 	if (options.timeZone != _options.timeZone) {
 		_mapView->setTimeZone(options.timeZone.zone());
+		if (_timeFilterBar)
+			_timeFilterBar->setTimeZone(options.timeZone.zone());
 		_dateRange.first = _dateRange.first.toTimeZone(options.timeZone.zone());
 		_dateRange.second = _dateRange.second.toTimeZone(options.timeZone.zone());
 	}

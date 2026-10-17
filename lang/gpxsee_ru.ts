@@ -2652,6 +2652,55 @@
     </message>
 </context>
 <context>
+    <name>TimeFilterBar</name>
+    <message>
+        <location filename="../src/GUI/timefilterbar.cpp" line="30"/>
+        <location filename="../src/GUI/timefilterbar.cpp" line="33"/>
+        <source>Time filter</source>
+        <translation>Фильтр по времени</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/timefilterbar.cpp" line="34"/>
+        <source>Show only the track points within the selected time range</source>
+        <translation>Показывать только точки трека в выбранном диапазоне времени</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/timefilterbar.cpp" line="37"/>
+        <source>Start of the time range</source>
+        <translation>Начало диапазона времени</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/timefilterbar.cpp" line="39"/>
+        <source>End of the time range</source>
+        <translation>Конец диапазона времени</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/timefilterbar.cpp" line="41"/>
+        <source>Drag the handles to select the time range</source>
+        <translation>Перетаскивайте ползунки, чтобы выбрать диапазон времени</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/timefilterbar.cpp" line="49"/>
+        <source>From:</source>
+        <translation>С:</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/timefilterbar.cpp" line="51"/>
+        <source>To:</source>
+        <translation>По:</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/timefilterbar.cpp" line="55"/>
+        <source>Reset</source>
+        <translation>Сброс</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/timefilterbar.cpp" line="56"/>
+        <source>Reset to the full time range</source>
+        <translation>Сбросить на полный диапазон времени</translation>
+    </message>
+</context>
+<context>
     <name>TrackItem</name>
     <message>
         <location filename="../src/GUI/trackitem.cpp" line="14"/>

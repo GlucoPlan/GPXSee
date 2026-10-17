@@ -37,6 +37,7 @@ class POIAction;
 class Data;
 class DEMLoader;
 class NavigationWidget;
+class TimeFilterBar;
 
 class GUI : public QMainWindow
 {
@@ -78,6 +79,7 @@ private slots:
 	void showGraphTabs(bool show);
 #else // Q_OS_ANDROID
 	void showToolbars(bool show);
+	void timeFilterChanged();
 	void showFullscreen(bool show);
 #endif // Q_OS_ANDROID
 	void showTracks(bool show);
@@ -238,6 +240,7 @@ private:
 	QToolBar *_showToolBar;
 	QToolBar *_navigationToolBar;
 #endif // Q_OS_ANDROID
+	TimeFilterBar *_timeFilterBar;
 	QMenu *_poiMenu;
 	QMenu *_mapMenu;
 	QMenu *_mapStylesMenu;
@@ -359,6 +362,7 @@ private:
 	qreal _trackDistance, _routeDistance;
 	qreal _time, _movingTime;
 	DateTimeRange _dateRange;
+	DateTimeRange _fullTimeRange;
 	QString _pathName;
 
 #ifndef Q_OS_ANDROID

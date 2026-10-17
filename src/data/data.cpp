@@ -108,15 +108,84 @@ static QMultiMap<QString, Parser*> parsers()
 }
 
 QMultiMap<QString, Parser*> Data::_parsers = parsers();
+bool Data::_timeFilter = false;
+QDateTime Data::_timeFrom;
+QDateTime Data::_timeTo;
 #ifdef Q_OS_ANDROID
 bool Data::_permChecked = false;
 #endif // Q_OS_ANDROID
 
+void Data::setTimeFilter(bool enabled, const QDateTime &from,
+  const QDateTime &to)
+{
+	_timeFilter = enabled;
+	_timeFrom = from;
+	_timeTo = to;
+}
+
+void Data::updateTimeRange(const TrackData &data)
+{
+	for (int i = 0; i < data.size(); i++) {
+		const SegmentData &sd = data.at(i);
+		for (int j = 0; j < sd.size(); j++) {
+			if (!sd.at(j).hasTimestamp())
+				continue;
+			const QDateTime &t = sd.at(j).timestamp();
+			if (_timeRange.first.isNull() || t < _timeRange.first)
+				_timeRange.first = t;
+			if (_timeRange.second.isNull() || t > _timeRange.second)
+				_timeRange.second = t;
+		}
+	}
+}
+
+TrackData Data::filterTrack(const TrackData &data)
+{
+	bool hasTime = false;
+	for (int i = 0; i < data.size() && !hasTime; i++)
+		for (int j = 0; j < data.at(i).size(); j++)
+			if (data.at(i).at(j).hasTimestamp()) {
+				hasTime = true;
+				break;
+			}
+	// Tracks without any time information are always displayed in full
+	if (!hasTime)
+		return data;
+
+	TrackData filtered(data);
+	filtered.clear();
+
+	for (int i = 0; i < data.size(); i++) {
+		const SegmentData &sd = data.at(i);
+		SegmentData fsd;
+		fsd.reserve(sd.size());
+
+		for (int j = 0; j < sd.size(); j++) {
+			const Trackpoint &p = sd.at(j);
+			if (!p.hasTimestamp())
+				continue;
+			if (!_timeFrom.isNull() && p.timestamp() < _timeFrom)
+				continue;
+			if (!_timeTo.isNull() && p.timestamp() > _timeTo)
+				continue;
+			fsd.append(p);
+		}
+
+		if (!fsd.isEmpty())
+			filtered.append(fsd);
+	}
+
+	return filtered;
+}
+
 void Data::processData(const QList<TrackData> &trackData,
   const QList<RouteData> &routeData)
 {
-	for (int i = 0; i < trackData.count(); i++)
-		_tracks.append(Track(trackData.at(i)));
+	for (int i = 0; i < trackData.count(); i++) {
+		const TrackData &td = trackData.at(i);
+		updateTimeRange(td);
+		_tracks.append(Track(_timeFilter ? filterTrack(td) : td));
+	}
 	for (int i = 0; i < routeData.count(); i++)
 		_routes.append(Route(routeData.at(i)));
 }
