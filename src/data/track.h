@@ -11,12 +11,24 @@
 
 class Map;
 
+/* Data of a single displayed track point, see Track::pointInfo(). */
+struct TrackPointInfo
+{
+	Trackpoint point;
+	qreal distance; // m from the track start (same as the path distance)
+	qreal time;     // s from the track start, NAN if unknown
+	qreal speed;    // m/s, NAN if unknown
+};
+typedef QVector<TrackPointInfo> TrackPointInfoSegment;
+
 class Track
 {
 public:
 	Track(const TrackData &data);
 
 	Path path() const;
+	/* Point data aligned 1:1 with the segments/points of path(). */
+	QList<TrackPointInfoSegment> pointInfo() const;
 
 	GraphPair elevation(Map *map) const;
 	GraphPair speed() const;

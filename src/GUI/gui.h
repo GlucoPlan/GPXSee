@@ -80,6 +80,7 @@ private slots:
 #else // Q_OS_ANDROID
 	void showToolbars(bool show);
 	void timeFilterChanged();
+	void markerPositionRequested(qreal pos);
 	void showFullscreen(bool show);
 #endif // Q_OS_ANDROID
 	void showTracks(bool show);

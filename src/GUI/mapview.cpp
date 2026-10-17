@@ -197,6 +197,8 @@ PathItem *MapView::addTrack(const Track &track)
 	ti->showVideo(track.isVideo() & _showVideos);
 	ti->showPoints(_showTrackWaypoints);
 	_scene->addItem(ti);
+	connect(ti, &PathItem::markerPositionRequested, this,
+	  &MapView::markerPositionRequested);
 
 	if (_showTracks) {
 		addPOI(_poi->points(ti->path()));
@@ -572,6 +574,7 @@ void MapView::setCoordinatesFormat(CoordinatesFormat format)
 {
 	WaypointItem::setCoordinatesFormat(format);
 	MarkerInfoItem::setCoordinatesFormat(format);
+	PathItem::setCoordinatesFormat(format);
 
 	for (int i = 0; i < _tracks.count(); i++)
 		_tracks.at(i)->updateMarkerInfo();

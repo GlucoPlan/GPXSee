@@ -17,6 +17,9 @@
 
 Units PathItem::_units = Metric;
 QTimeZone PathItem::_timeZone = QTimeZone::utc();
+CoordinatesFormat PathItem::_coordinatesFormat = DecimalDegrees;
+
+#define POINT_PICK_RADIUS 10 /* screen pixels */
 
 static inline bool isValid(const QPointF &p)
 {
@@ -578,12 +581,70 @@ void PathItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 	emit selected(false);
 }
 
+bool PathItem::nearestPoint(const QPointF &pos, int &seg, int &idx) const
+{
+	// item coordinates are map pixels, the view scales them by 2^digitalZoom
+	qreal radius = POINT_PICK_RADIUS * pow(2, -_digitalZoom);
+	qreal best = radius * radius;
+	bool found = false;
+
+	for (int i = 0; i < _path.size(); i++) {
+		const PathSegment &ps = _path.at(i);
+		for (int j = 0; j < ps.size(); j++) {
+			QPointF d(_map->ll2xy(ps.at(j).coordinates()) - pos);
+			qreal dist = d.x() * d.x() + d.y() * d.y();
+			if (dist <= best) {
+				best = dist;
+				seg = i;
+				idx = j;
+				found = true;
+			}
+		}
+	}
+
+	return found;
+}
+
+void PathItem::selectPoint(qreal distance)
+{
+	qreal pos = _graph
+	  ? (_graph->graphType() == Time) ? _graph->timeAtDistance(distance)
+		: distance
+	  : NAN;
+
+	if (!std::isnan(pos))
+		emit markerPositionRequested(pos);
+	else {
+		/* No graph to synchronize with, move just this path marker */
+		QPointF pp(position(distance));
+		if (isValid(pp)) {
+			_markerDistance = distance;
+			_marker->setPos(pp);
+			_marker->setVisible(_showMarker);
+			updateMarkerInfo();
+		}
+	}
+}
+
 void PathItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
 	const GraphicsScene *gs = dynamic_cast<GraphicsScene*>(scene());
-	if (gs)
-		Popup::show(event->screenPos(), info(gs->showExtendedInfo()),
-		  event->widget());
+	if (gs) {
+		ToolTip track(info(gs->showExtendedInfo()));
+		ToolTip tt;
+		int seg, idx;
+
+		if (nearestPoint(event->pos(), seg, idx) && pointInfo(seg, idx, tt)) {
+			for (int i = 0; i < track.list().size(); i++)
+				tt.insert(track.list().at(i).key(), track.list().at(i).value());
+			tt.setImages(track.images());
+			tt.setVideo(track.video());
+			selectPoint(_path.at(seg).at(idx).distance());
+		} else
+			tt = track;
+
+		Popup::show(event->screenPos(), tt, event->widget());
+	}
 
 	event->accept();
 }

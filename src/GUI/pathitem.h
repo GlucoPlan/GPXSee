@@ -61,6 +61,8 @@ public:
 
 	static void setUnits(Units units) {_units = units;}
 	static void setTimeZone(const QTimeZone &zone) {_timeZone = zone;}
+	static void setCoordinatesFormat(CoordinatesFormat format)
+	  {_coordinatesFormat = format;}
 
 public slots:
 	void hover(bool hvr);
@@ -68,11 +70,19 @@ public slots:
 
 signals:
 	void selected(bool);
+	/* Request to move the graph slider (and the path markers) to the given
+	   graph position, emitted when a track point is clicked. */
+	void markerPositionRequested(qreal pos);
 
 protected:
 	void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
 	void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
 	void mousePressEvent(QGraphicsSceneMouseEvent *event);
+
+	/* Info about the point with index idx of segment seg of the path.
+	   Returns false if the item does not provide point info. */
+	virtual bool pointInfo(int seg, int idx, ToolTip &tt) const
+	  {Q_UNUSED(seg); Q_UNUSED(idx); Q_UNUSED(tt); return false;}
 
 	QDateTime _date;
 	QString _name;
@@ -83,9 +93,12 @@ protected:
 
 	static Units _units;
 	static QTimeZone _timeZone;
+	static CoordinatesFormat _coordinatesFormat;
 
 private:
 	const PathSegment *segment(qreal x) const;
+	bool nearestPoint(const QPointF &pos, int &seg, int &idx) const;
+	void selectPoint(qreal distance);
 	QPointF position(qreal distance) const;
 	void updatePainterPath();
 	void updateShape();

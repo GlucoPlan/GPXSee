@@ -352,6 +352,8 @@ void GUI::createActions()
 	_showPOIAction->setShortcut(SHOW_POI_SHORTCUT);
 #endif // Q_OS_ANDROID
 	connect(_showPOIAction, &QAction::triggered, _mapView, &MapView::showPOI);
+	connect(_mapView, &MapView::markerPositionRequested, this,
+	  &GUI::markerPositionRequested);
 	addAction(_showPOIAction);
 
 	// Map actions
@@ -1795,6 +1797,14 @@ void GUI::reloadFiles()
 #endif // Q_OS_ANDROID
 	updateDataDEMDownloadAction();
 	_mapView->showExtendedInfo(_files.size() > 1);
+}
+
+void GUI::markerPositionRequested(qreal pos)
+{
+	GraphTab *gt = static_cast<GraphTab*>(_graphTabWidget->currentWidget());
+	if (gt)
+		gt->setSliderPosition(pos);
+	_mapView->setMarkerPosition(pos);
 }
 
 void GUI::timeFilterChanged()

@@ -2,6 +2,7 @@
 #define TRACKITEM_H
 
 #include <QDateTime>
+#include "data/track.h"
 #include "pathitem.h"
 
 class Map;
@@ -17,7 +18,12 @@ public:
 	ToolTip info(bool extended) const;
 	bool isVideo() const {return _video;}
 
+protected:
+	bool pointInfo(int seg, int idx, ToolTip &tt) const;
+
 private:
+	QList<TrackPointInfoSegment> _points;
+
 	qreal _time;
 	qreal _movingTime;
 	bool _video;

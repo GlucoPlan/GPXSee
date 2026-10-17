@@ -612,6 +612,36 @@ QDateTime Track::date() const
 	  ? _data.first().first().timestamp() : QDateTime();
 }
 
+QList<TrackPointInfoSegment> Track::pointInfo() const
+{
+	QList<TrackPointInfoSegment> ret;
+
+	// Must follow exactly the same point selection as path()
+	for (int i = 0; i < _data.size(); i++) {
+		const SegmentData &sd = _data.at(i);
+		if (sd.size() < 2)
+			continue;
+		const Segment &seg = _segments.at(i);
+		ret.append(TrackPointInfoSegment());
+		TrackPointInfoSegment &is = ret.last();
+
+		for (int j = 0; j < sd.size(); j++) {
+			if (seg.outliers.contains(j) || discardStopPoint(seg, j))
+				continue;
+
+			TrackPointInfo pi;
+			pi.point = sd.at(j);
+			pi.distance = seg.distance.at(j);
+			pi.time = seg.time.at(j);
+			pi.speed = (_useReportedSpeed && sd.at(j).hasSpeed())
+			  ? sd.at(j).speed() : seg.speed.at(j);
+			is.append(pi);
+		}
+	}
+
+	return ret;
+}
+
 Path Track::path() const
 {
 	Path ret;

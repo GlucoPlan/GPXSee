@@ -1,4 +1,6 @@
+#include <cmath>
 #include <QLocale>
+#include <QCoreApplication>
 #include "common/util.h"
 #include "data/track.h"
 #include "format.h"
@@ -61,4 +63,66 @@ TrackItem::TrackItem(const Track &track, Map *map, QGraphicsItem *parent)
 	_movingTime = track.movingTime();
 	_file = track.file();
 	_video = track.isVideo();
+	_points = track.pointInfo();
+}
+
+static QString speedString(qreal speed, Units units, const QLocale &l)
+{
+	if (units == Nautical)
+		return l.toString(MS2KN * speed, 'f', 1) + UNIT_SPACE
+		  + QCoreApplication::translate("MotionInfoItem", "kn");
+	else if (units == Imperial)
+		return l.toString(MS2MIH * speed, 'f', 1) + UNIT_SPACE
+		  + QCoreApplication::translate("MotionInfoItem", "mi/h");
+	else
+		return l.toString(MS2KMH * speed, 'f', 1) + UNIT_SPACE
+		  + QCoreApplication::translate("MotionInfoItem", "km/h");
+}
+
+bool TrackItem::pointInfo(int seg, int idx, ToolTip &tt) const
+{
+	if (seg < 0 || seg >= _points.size() || idx < 0
+	  || idx >= _points.at(seg).size())
+		return false;
+
+	const TrackPointInfo &pi = _points.at(seg).at(idx);
+	const Trackpoint &p = pi.point;
+	QLocale l;
+
+	if (p.hasTimestamp()) {
+		QDateTime date(p.timestamp().toTimeZone(_timeZone));
+		tt.insert(tr("Point time"), l.toString(date.date(),
+		  QLocale::ShortFormat) + " " + date.time().toString("h:mm:ss"));
+	}
+	tt.insert(tr("Coordinates"), Format::coordinates(p.coordinates(),
+	  _coordinatesFormat));
+	if (p.hasElevation())
+		tt.insert(tr("Elevation"), Format::elevation(p.elevation(), _units));
+	if (!std::isnan(pi.speed))
+		tt.insert(tr("Speed"), speedString(pi.speed, _units, l));
+	tt.insert(tr("Distance from start"), Format::distance(pi.distance,
+	  _units));
+	if (!std::isnan(pi.time))
+		tt.insert(tr("Time from start"), Format::timeSpan(pi.time));
+	if (p.hasHeartRate())
+		tt.insert(tr("Heart rate"), l.toString(qRound(p.heartRate()))
+		  + UNIT_SPACE + QCoreApplication::translate("HeartRateGraph", "bpm"));
+	if (p.hasCadence())
+		tt.insert(tr("Cadence"), l.toString(qRound(p.cadence()))
+		  + UNIT_SPACE + QCoreApplication::translate("CadenceGraph", "rpm"));
+	if (p.hasPower())
+		tt.insert(tr("Power"), l.toString(qRound(p.power()))
+		  + UNIT_SPACE + QCoreApplication::translate("PowerGraph", "W"));
+	if (p.hasTemperature()) {
+		if (_units == Metric)
+			tt.insert(tr("Temperature"), l.toString(p.temperature(), 'f', 1)
+			  + UNIT_SPACE + QChar(0x00B0)
+			  + QCoreApplication::translate("TemperatureGraph", "C"));
+		else
+			tt.insert(tr("Temperature"), l.toString(p.temperature() * C2FS
+			  + C2FO, 'f', 1) + UNIT_SPACE + QChar(0x00B0)
+			  + QCoreApplication::translate("TemperatureGraph", "F"));
+	}
+
+	return true;
 }

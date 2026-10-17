@@ -2747,6 +2747,57 @@
         <source>File</source>
         <translation>Файл</translation>
     </message>
+    <message>
+        <location filename="../src/GUI/trackitem.cpp" line="94"/>
+        <source>Point time</source>
+        <translation>Время точки</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/trackitem.cpp" line="97"/>
+        <source>Coordinates</source>
+        <translation>Координаты</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/trackitem.cpp" line="100"/>
+        <source>Elevation</source>
+        <translation>Высота</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/trackitem.cpp" line="102"/>
+        <source>Speed</source>
+        <translation>Скорость</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/trackitem.cpp" line="103"/>
+        <source>Distance from start</source>
+        <translation>Расстояние от старта</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/trackitem.cpp" line="106"/>
+        <source>Time from start</source>
+        <translation>Время от старта</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/trackitem.cpp" line="108"/>
+        <source>Heart rate</source>
+        <translation>Пульс</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/trackitem.cpp" line="111"/>
+        <source>Cadence</source>
+        <translation>Каденс</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/trackitem.cpp" line="114"/>
+        <source>Power</source>
+        <translation>Мощность</translation>
+    </message>
+    <message>
+        <location filename="../src/GUI/trackitem.cpp" line="118"/>
+        <location filename="../src/GUI/trackitem.cpp" line="122"/>
+        <source>Temperature</source>
+        <translation>Температура</translation>
+    </message>
 </context>
 <context>
     <name>WaypointItem</name>

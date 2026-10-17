@@ -108,6 +108,10 @@ public:
 	NavigationWidget *navigation() {return _nav;}
 #endif // Q_OS_ANDROID
 
+signals:
+	/* A track point was clicked, move the graph slider to pos. */
+	void markerPositionRequested(qreal pos);
+
 public slots:
 	void showMap(bool show);
 	void showPOI(bool show);
